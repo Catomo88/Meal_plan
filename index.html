@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리집 식단표</title>
+<style>
+:root { --blue: #4472C4; --dark: #1F4E79; --green: #375623; --bg: #f5f7fa; --card: #fff; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Apple SD Gothic Neo', '맑은 고딕', sans-serif; background: var(--bg); color: #333; line-height: 1.6; padding-bottom: 80px; }
+header { background: linear-gradient(135deg, var(--dark), var(--blue)); color: #fff; padding: 20px 16px; text-align: center; position: sticky; top: 0; z-index: 100; }
+header h1 { font-size: 1.2rem; font-weight: 700; }
+header p { font-size: 0.75rem; opacity: 0.8; margin-top: 4px; }
+
+.tabs { display: flex; background: #fff; border-bottom: 2px solid #eee; overflow-x: auto; position: sticky; top: 60px; z-index: 99; }
+.tab { flex: 1; min-width: 80px; padding: 12px 8px; text-align: center; font-size: 0.8rem; font-weight: 600; color: #888; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+.week-section { display: none; padding: 12px; }
+.week-section.active { display: block; }
+
+.week-header { background: var(--dark); color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; }
+.week-header.w2 { background: var(--green); }
+
+.meal-card { background: var(--card); border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.meal-top { display: flex; align-items: center; padding: 14px; cursor: pointer; }
+.meal-day { background: var(--blue); color: #fff; border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; margin-right: 10px; white-space: nowrap; }
+.meal-menu { font-size: 0.85rem; font-weight: 600; flex: 1; }
+.meal-arrow { font-size: 0.7rem; color: #aaa; transition: transform 0.2s; margin-left: 8px; }
+.meal-card.open .meal-arrow { transform: rotate(180deg); }
+
+.snack-badge { display: inline-block; background: #FFF3E0; color: #E65100; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-top: 4px; }
+.timing-badge { display: inline-block; background: #E3F2FD; color: #1565C0; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-left: 4px; }
+
+.meal-detail { display: none; padding: 0 14px 14px; }
+.meal-card.open .meal-detail { display: block; }
+.detail-section { margin-bottom: 10px; }
+.detail-title { font-size: 0.75rem; font-weight: 700; color: var(--blue); margin-bottom: 4px; padding: 4px 8px; background: #f0f4ff; border-radius: 4px; }
+.detail-body { font-size: 0.78rem; color: #555; padding: 8px; line-height: 1.7; background: #fafafa; border-radius: 4px; }
+
+.shop-section { padding: 12px; display: none; }
+.shop-section.active { display: block; }
+.shop-cat { background: var(--blue); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; margin: 10px 0 6px; }
+.shop-cat.정육 { background: #5B4E97; }
+.shop-cat.수산 { background: #2E86C1; }
+.shop-cat.두부류 { background: #1B6CA8; }
+.shop-cat.해조류 { background: #1A5276; }
+.shop-cat.채소 { background: #3A7D44; }
+.shop-cat.달걀 { background: #8B4513; }
+.shop-cat.양념기타 { background: #7D6608; }
+.shop-cat.반찬재료 { background: #7B241C; }
+
+.shop-item { display: flex; padding: 10px 12px; background: var(--card); border-bottom: 1px solid #f0f0f0; font-size: 0.8rem; align-items: center; }
+.shop-item:nth-child(even) { background: #f8faff; }
+.shop-name { font-weight: 600; min-width: 80px; }
+.shop-qty { color: var(--blue); font-weight: 600; min-width: 55px; text-align: center; }
+.shop-menu { flex: 1; color: #777; font-size: 0.75rem; }
+.shop-price { font-weight: 600; min-width: 60px; text-align: right; }
+
+.nutrient-banner { background: linear-gradient(135deg, #E8F5E9, #FFF3E0); padding: 12px 14px; margin: 12px; border-radius: 10px; font-size: 0.78rem; }
+.nutrient-banner b { color: #2E7D32; }
+
+@media (min-width: 768px) {
+  body { max-width: 700px; margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>우리집 식단표 🍽️</h1>
+  <p>4월 2주차 ~ 4주차 (4/14 ~ 5/1) · 화수금</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('w2')">2주차<br><small>4/14~17</small></div>
+  <div class="tab" onclick="showTab('w3')">3주차<br><small>4/21~24</small></div>
+  <div class="tab" onclick="showTab('w4')">4주차<br><small>4/28~5/1</small></div>
+  <div class="tab" onclick="showTab('s2')">장보기<br><small>2주차</small></div>
+  <div class="tab" onclick="showTab('s3')">장보기<br><small>3주차</small></div>
+  <div class="tab" onclick="showTab('s4')">장보기<br><small>4주차</small></div>
+</div>
+
+<div class="nutrient-banner">
+  <b>🦴 성장기 영양 강화:</b> 칼슘(미역·두부·멸치) · 마그네슘(시금치·연어) · 비타민D(달걀·오리) 매주 포함
+</div>
+<div id="w2" class="week-section active">
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">화 (4/14)</span>
+    <div class="meal-menu">
+      닭다리살 데리야끼구이 + 맑은 감자국 + 어묵볶음
+      
+      <span class=timing-badge>⏰ 식사 25분 전 시작</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">1. 닭다리살 700g 한 입 크기로 썰어 소금+후추 밑간<br>2. 데리야끼 소스 만들기: 간장 3.5큰술 + 맛술 2.5큰술<br>   + 설탕 2큰술 + 올리고당 1큰술 + 다진마늘 1큰술<br>   + 생강가루 약간 섞어 소스통에 담기<br>3. 감자 2.5개 나박썰기(0.5cm), 통에 담아 냉장<br>4. 대파 1/2.5대 어슷썰기<br>5. 냄비에 물 950ml + 코인육수 1개 세팅<br><br>[어묵볶음]<br>6. 어묵 250g 끓는 물 30초 데쳐 기름기 제거<br>7. 한 입 크기로 썰어 통에 담기</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 25분 전 시작<br><br>[닭다리살 데리야끼구이]<br>1. 팬에 기름 1큰술, 중불에서 닭다리살 올리기<br>2. 껍질면부터 3~4분 노릇하게 → 뒤집어 2~3분<br>3. 준비한 데리야끼 소스 전량 부어 약불로 줄이기<br>4. 소스 끼얹으며 2~3분 졸여 윤기 나면 통깨 뿌려 완성<br><br>[맑은 감자국]<br>5. 물+코인육수 센불로 끓이기<br>6. 끓으면 감자 넣고 중불 5~7분 (감자 익을 때까지)<br>7. 국간장 1큰술 + 소금으로 간<br>8. 대파 넣어 마무리<br><br>[어묵볶음]<br>9. 팬에 기름 약간, 어묵 중불 1분 볶기<br>10. 간장 1큰술+올리고당 1큰술 → 약불 1~2분 졸이기<br>11. 통깨 뿌려 완성<br><br>※ 데리야끼는 소스 졸이면 식어도 맛 유지됨<br>   단, 닭은 센불에서 껍질 먼저 바삭하게!</div>
+    </div>
+  </div>
+</div>
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">수 (4/15)</span>
+    <div class="meal-menu">
+      갈릭새우 + 새우볶음밥 + 맑은 파계란국
+      <br><span class=snack-badge>🍌 간식: 인절미 팬구이</span>
+      <span class=timing-badge>⏰ 식사 20분 전 시작</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">1. 냉동 새우살 350g 냉장칸에서 해동<br>2. 양파 1/2.5개 잘게 다지기, 통에 담기<br>3. 마늘 5~6쪽 편으로 썰기<br>4. 대파 1대 송송 썰기<br>5. 달걀 3.5개 풀어 냉장 (볶음밥 1개 + 계란국 2.5개)<br>6. 냄비에 물 850ml + 코인육수 1개 세팅<br><br>[간식] 별도 준비 없음 (시판 인절미 사용)</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 20분 전 시작<br>(새우는 뜨거울 때가 맛있으므로 마지막에!)<br><br>[갈릭새우]<br>1. 팬에 올리브오일 3.5큰술 + 편마늘 → 약불 2분 향 내기<br>2. 해동한 새우 넣고 중불 앞뒤 2분씩 볶기<br>3. 소금+후추로 간, 접시에 먼저 덜어놓기<br><br>[새우볶음밥]<br>4. 같은 팬(새우기름)에 달걀 1개 스크램블<br>5. 다진 양파 넣고 1분 → 밥 3.5공기 넣기<br>6. 굴소스 1큰술 + 간장 1/2.5큰술, 센불 빠르게 볶기<br>7. 대파+참기름 넣어 완성, 갈릭새우 올려 담기<br><br>[맑은 파계란국]<br>8. 물+코인육수 센불로 끓이기<br>9. 대파 넣고 1분 끓여 소금으로 간<br>10. 풀어둔 달걀 2.5개 줄줄 부어 30초 뒤 살살 저어 완성<br><br>※ 갈릭새우는 접시에 덜어뒀다가<br>   볶음밥 완성 직후 바로 올려 서빙<br>※ 볶음밥은 센불로 빠르게 — 눌어붙지 않게<br><br>[간식] 인절미 팬구이<br>11. 팬에 기름 살짝, 약불 예열<br>12. 인절미 올려 앞뒤 1~2분씩 노릇하게<br>13. 꿀 또는 콩고물 곁들여 완성<br>※ 남은 인절미는 냉장 보관, 다음날 재구이 OK</div>
+    </div>
+  </div>
+</div>
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">금 (4/17)</span>
+    <div class="meal-menu">
+      간장제육볶음 (배즙양념) + 맑은 무국 + 감자채볶음
+      
+      <span class=timing-badge>⏰ 식사 20분 전 시작</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">[간장제육볶음]<br>1. 돼지 목살 500g 얇게 썰기 (3mm 이하)<br>   ※ 5살 아들용은 한 입 크기로 더 잘게<br>2. 양념: 간장 3.5큰술 + 배즙(갈아만든배) 5큰술<br>   + 설탕 1큰술 + 올리고당 1큰술 + 다진마늘 1큰술<br>   + 맛술 1큰술 + 참기름 1큰술 + 후추 약간<br>3. 고기에 양념 버무려 지퍼백에 넣어 냉장 (하룻밤)<br>4. 양파 1개 채썰기, 대파 1대 어슷, 통에 담아 냉장<br><br>[무국]<br>5. 무 1/5개 나박썰기(0.5cm)<br>6. 냄비에 물 950ml + 코인육수 1개 세팅<br><br>[감자채볶음]<br>7. 감자 1개 가늘게 채썰어 찬물에 10분 담가 전분 빼기<br>   → 체에 밭쳐 물기 빼고 통에 담기</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 20분 전 시작<br>(제육볶음은 센불로 빠르게, 가장 마지막에!)<br><br>[간장제육볶음]<br>1. 팬에 기름 1큰술, 센불에서 양념 고기 펼쳐 올리기<br>2. 2~3분 볶아 겉면 노릇해지면 양파 넣고 1분<br>3. 대파 넣고 30초 볶아 바로 불 끄기<br>   ※ 오래 볶으면 질겨짐 — 센불에서 빠르게!<br>4. 통깨 뿌려 완성<br><br>[맑은 무국]<br>5. 물+코인육수 센불로 끓이기<br>6. 끓으면 무 넣고 중불 7~8분 (무 투명해질 때까지)<br>7. 국간장 1큰술 + 소금으로 간, 대파 넣어 마무리<br><br>[감자채볶음]<br>8. 팬에 기름 1큰술, 중불에서 감자채 3~4분 볶기<br>9. 소금+약간 간장으로 간, 통깨 뿌려 완성<br><br>※ 제육볶음은 식사 직전 조리 — 뜨거울 때 서빙<br>※ 국+감자채 먼저 완성 → 제육 가장 마지막</div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="w3" class="week-section">
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">화 (4/21)</span>
+    <div class="meal-menu">
+      간장 오리불고기 + 시금치된장국 + 감자채볶음
+      
+      <span class=timing-badge>⏰ 식사 30분 전 시작</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">[간장 오리불고기]<br>1. 오리불고기용 700g 키친타올로 핏물 제거<br>2. 양념: 진간장 3.5큰술 + 굴소스 1큰술<br>   + 올리고당 2.5큰술 + 다진마늘 1큰술<br>   + 참기름 1큰술 + 후추 섞기<br>3. 오리고기에 양념 버무려 밀폐 용기 냉장<br>   (하룻밤 재우기)<br>4. 양파 1개 채썰기, 대파 1대 어슷썰기<br>   → 통에 담기<br><br>[시금치된장국]<br>5. 시금치 250g 씻어 5cm 길이로 자르기<br>6. 두부 1/2.5모 깍둑썰기<br>7. 냄비에 물 950ml + 코인육수 1개 세팅<br><br>[감자채볶음]<br>8. 감자 2.5개 가늘게 채썰기<br>   → 찬물에 담가 전분 빼기<br>   → 물기 빼서 통에 담기</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 30분 전 시작<br><br>[간장 오리불고기]<br>1. 팬에 기름 없이 오리고기 올리기<br>   (기름 충분히 나옴)<br>2. 센불에서 양파 함께 3~4분 빠르게 볶기<br>3. 대파 넣고 1분 더 볶아 통깨 뿌려 완성<br>※ 양념볶음이라 식어도 맛 유지됨<br><br>[시금치된장국]<br>4. 물+코인육수 끓으면 된장 2.5큰술 풀기<br>5. 두부 넣고 3분 → 시금치 넣고 2분<br>6. 다진마늘 1/2작은술, 국간장으로 간<br><br>[감자채볶음]<br>7. 팬에 기름 2.5큰술, 감자채 중불 3~4분<br>8. 소금+후추로 간, 통깨 뿌려 완성</div>
+    </div>
+  </div>
+</div>
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">수 (4/22)</span>
+    <div class="meal-menu">
+      대구전 + 맑은무국 + 어묵볶음
+      <br><span class=snack-badge>🍌 간식: 어묵꼬치</span>
+      <span class=timing-badge>⏰ 식사 20분 전 시작</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">[대구전]<br>1. 대구살(손질) 500g 키친타올로 물기 제거<br>2. 소금+후추 양면 밑간 → 밀폐 용기 냉장<br>3. 밀가루 적당량, 달걀 3.5개 그릇에 준비<br><br>[맑은무국]<br>4. 무 1/3.5개 나박썰기(0.5cm)<br>5. 냄비에 물 950ml + 코인육수 1개 세팅<br><br>[어묵볶음]<br>6. 어묵 300g 끓는 물 30초 데쳐 기름기 제거<br>7. 반찬용 250g 한 입 크기로 썰어 통에<br>8. 간식용 60g은 꼬치에 2~3.5개씩 꽂아두기</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 20분 전 시작<br>(대구전은 갓 부친 것이 가장 맛있음!)<br><br>[맑은무국 — 먼저 시작]<br>1. 물+코인육수 센불로 끓이기<br>2. 무 넣고 중불 7~8분 (투명해질 때까지)<br>3. 국간장 1큰술 + 소금으로 간, 대파 마무리<br><br>[어묵볶음]<br>4. 팬에 기름 약간, 어묵 중불 1분 볶기<br>5. 간장 1큰술+올리고당 1큰술<br>   → 약불 1~2분 졸이기, 통깨<br><br>[대구전 — 가장 마지막에!]<br>6. 대구살에 밀가루 얇게 입히기<br>7. 달걀물 넣어 코팅<br>8. 팬에 기름 넉넉히, 약불~중약불 천천히<br>9. 한쪽 3분 → 뒤집어 2분 (자주 뒤집지 않기!)<br>10. 키친타올에 기름 빼고 바로 접시에<br>※ 아이용은 한 입 크기로 잘라 담기<br><br>[간식] 어묵꼬치<br>12. 냄비에 물 500ml + 국간장 1큰술 + 대파<br>13. 끓으면 어묵꼬치 넣고 3분<br>※ 만들어두면 국물째 보관, 다음날도 OK</div>
+    </div>
+  </div>
+</div>
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">금 (4/24)</span>
+    <div class="meal-menu">
+      닭다리살 간장마늘구이 + 차돌미역국 + 김구이
+      
+      <span class=timing-badge>⏰ 식사 25분 전 시작</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">[닭다리살 간장마늘구이]<br>1. 닭다리살 700g → 우유 250ml에 20~30분<br>   담가 잡내 제거 후 헹궈 물기 제거<br>2. 양념: 진간장 3.5큰술 + 굴소스 1큰술<br>   + 올리고당 2.5큰술 + 다진마늘 2.5큰술 + 후추<br>3. 닭에 양념 버무려 밀폐 용기 냉장<br>   (하룻밤 재우기)<br><br>[차돌미역국 — 코인육수 없이]<br>4. 염장 미역 60g → 찬물 30분 담가 염분 빼기<br>   → 3~4번 헹궈 한 입 크기로 자르기<br>5. 차돌박이 250g 해동, 핏물 제거,<br>   한 입 크기로 자르기<br>6. 냄비에 참기름 1큰술 세팅<br><br>[김구이] 별도 준비 불필요</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 25분 전 시작<br><br>[차돌미역국 — 먼저 시작]<br>1. 냄비에 참기름 + 차돌 → 중불 기름 내기 2~3분<br>2. 미역 넣고 1~2분 볶기<br>3. 물 950ml 부어 센불 → 끓으면 약불 7~8분<br>4. 국간장 1큰술 + 소금으로 간<br><br>[닭다리살 간장마늘구이]<br>5. 팬에 기름 1큰술, 중불 예열<br>6. 양념 닭 껍질면부터 3~4분 노릇하게<br>7. 뒤집어 2~3분 → 뚜껑 닫고 약불 3분<br>   (속까지 익히기)<br>8. 통깨 뿌려 완성<br>※ 아이용은 가위로 한 입 크기 잘라 담기<br><br>[김구이]<br>9. 김에 참기름 바르고 소금 살짝<br>10. 약불 팬에서 앞뒤 10초씩</div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="w4" class="week-section">
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">화 (4/28)</span>
+    <div class="meal-menu">
+      차돌박이 채소볶음 + 배추된장국 + 두부전
+      
+      <span class=timing-badge>⏰ 차돌볶음은 식사 직전 10분 전!</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">[차돌박이 채소볶음]<br>1. 차돌박이 350g 해동, 한 입 크기로 자르기<br>2. 양파 1개 채썰기, 당근 1/2.5개 채썰기,<br>   대파 1대 어슷썰기<br>3. 소스: 간장 2.5큰술 + 굴소스 1큰술<br>   + 올리고당 1큰술 + 다진마늘 1큰술<br>   + 참기름 1큰술 + 후추 섞기<br><br>[배추된장국]<br>4. 배추 잎 3~5장 한 입 크기로 자르기<br>5. 두부 1/5모 깍둑썰기 (국용)<br>6. 냄비에 물 950ml + 코인육수 1개 세팅<br><br>[두부전]<br>7. 두부 1모 물기 빼서 1cm 두께 슬라이스<br>8. 키친타올로 물기 완전 제거<br>9. 밀가루 적당량, 달걀 2.5개 풀어 준비</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 차돌볶음은 식사 직전 10분 전!<br>(가장 마지막에 조리 — 뜨거울 때 바로)<br><br>[배추된장국 — 먼저 시작]<br>1. 물+코인육수 센불로 끓이기<br>2. 된장 2.5큰술 풀고 배추+두부 넣어 중불 5분<br>3. 다진마늘 1/2작은술, 대파 넣어 마무리<br><br>[두부전]<br>4. 두부에 밀가루 얇게 → 달걀물 입히기<br>5. 팬에 기름 넉넉히, 중약불 앞뒤 노릇하게<br>6. 키친타올에 기름 빼기<br><br>[차돌박이 채소볶음 — 가장 마지막!]<br>7. 팬에 기름 없이 차돌 올려 센불 빠르게 볶기<br>8. 채소+소스 넣고 2분 센불 볶기<br>9. 참기름+통깨 뿌려 밥 위에 올려 바로 서빙</div>
+    </div>
+  </div>
+</div>
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">수 (4/29)</span>
+    <div class="meal-menu">
+      돼지안심 탕수육 + 애호박된장국 + 시금치나물
+      <br><span class=snack-badge>🍌 간식: 바나나구이</span>
+      <span class=timing-badge>⏰ 식사 40분 전 시작 (탕수육 튀김 시간 필요)</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">[돼지목살 탕수육]<br>1. 돼지 안심 600g → 2cm 깍둑썰기<br>   ※ 안심은 결 반대로 썰어야 더 부드러움<br>2. 밑간: 소금+후추+맛술 1큰술<br>   → 버무려 냉장<br>3. 튀김용: 감자전분 1컵, 달걀 1개 준비<br>4. 탕수 소스: 설탕 5큰술 + 식초 3.5큰술<br>   + 간장 1큰술 + 케첩 2.5큰술<br>   + 물 1/2.5컵 + 전분물 1큰술 섞어 소스통에<br><br>[애호박된장국]<br>5. 애호박 1개 반달썰기(0.5cm)<br>6. 두부 1/5모 깍둑썰기 (국용)<br>7. 냄비에 물 950ml + 코인육수 1개 세팅<br><br>[시금치나물]<br>8. 시금치 250g 깨끗이 씻기<br><br>[간식] 별도 준비 없음 (바나나+시나몬 사용)</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 40분 전 시작 (탕수육 튀김 시간 필요)<br><br>[애호박된장국 — 먼저 시작]<br>1. 물+코인육수 센불로 끓이기<br>2. 된장 2.5큰술 풀고 애호박+두부 중불 5분<br>3. 다진마늘, 대파 넣어 마무리<br><br>[시금치나물]<br>4. 끓는 물에 소금 → 시금치 30초 데치기<br>5. 찬물 헹궈 물기 꽉 짜기<br>6. 참기름 1큰술 + 국간장 1큰술<br>   + 다진마늘 1/2.5큰술 + 깨 무치기<br><br>[돼지목살 탕수육 — 소스 별도!]<br>7. 목살에 달걀+전분 넣어 버무리기<br>8. 팬에 기름 넉넉히(3cm), 170도 3~4분 튀기기<br>9. 꺼내 1분 쉬고 → 센불 30초 2차 튀기기<br>   (바삭하게!)<br>10. 키친타올에 기름 빼고 접시에 담기<br>※ 소스는 별도 그릇! 먹기 직전에 끼얹기<br><br>[간식] 바나나구이<br>11. 바나나 세로로 반 가르기<br>12. 팬에 기름 살짝, 중불에서 단면 1~2분<br>13. 꿀 살짝 뿌리고 시나몬 톡톡<br>※ 우유 한 잔 곁들이면 칼슘 간식 완성</div>
+    </div>
+  </div>
+</div>
+<div class="meal-card" onclick="this.classList.toggle('open')">
+  <div class="meal-top">
+    <span class="meal-day">금 (5/1)</span>
+    <div class="meal-menu">
+      해물파전 (새우+오징어) + 콩나물국 + 멸치볶음
+      
+      <span class=timing-badge>⏰ 식사 20분 전 시작</span>
+    </div>
+    <span class="meal-arrow">▼</span>
+  </div>
+  <div class="meal-detail">
+    <div class="detail-section">
+      <div class="detail-title">🌙 전날 밤 준비</div>
+      <div class="detail-body">[해물파전]<br>1. 냉동 새우살 200g + 냉동 오징어 200g<br>   → 냉장칸에서 해동<br>2. 쪽파 1줌 → 5cm 길이로 자르기<br>3. 반죽: 부침가루 1컵 + 튀김가루 1/2.5컵<br>   + 물 2컵 + 소금 약간 섞기 → 냉장<br><br>[콩나물국]<br>4. 콩나물 250g 깨끗이 씻기<br>5. 냄비에 물 950ml + 코인육수 1개 세팅<br><br>[멸치볶음]<br>6. 잔멸치 100g 준비</div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-title">🔥 당일 조리</div>
+      <div class="detail-body">★ 식사 20분 전 시작<br>(파전은 갓 부친 것이 바삭!)<br><br>[콩나물국 — 먼저 시작]<br>1. 물+코인육수 센불로 끓이기<br>2. 콩나물 넣고 뚜껑 닫아 5분<br>   (뚜껑 열지 않기!)<br>3. 국간장 1큰술 + 소금으로 간, 대파 마무리<br><br>[멸치볶음]<br>4. 마른 팬에 멸치 중불 2분 볶아 비린내 제거<br>5. 간장 1큰술 + 올리고당 2큰술<br>   + 물 1큰술 넣고 약불 2분<br>6. 통깨 뿌려 완성<br><br>[해물파전 — 가장 마지막!]<br>7. 새우+오징어 한 입 크기로 자르기<br>8. 냉장 반죽에 쪽파+해물 섞기<br>9. 팬에 기름 넉넉히(3.5큰술), 센불 예열<br>10. 반죽 얇게 펴서 중불 앞면 3~4분 (눌러주기)<br>11. 뒤집어 2~3분 바삭하게<br>※ 한 입 크기로 잘라 담기<br>   간장+식초 소스 곁들이기</div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="s2" class="shop-section">
+<div class="shop-cat 정육">정육</div>
+<div class="shop-item">
+  <span class="shop-name">닭다리살</span>
+  <span class="shop-qty">700g</span>
+  <span class="shop-menu">화(데리야끼구이)</span>
+  <span class="shop-price">9,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">돼지 목살</span>
+  <span class="shop-qty">500g</span>
+  <span class="shop-menu">금(간장제육볶음) — 얇게 썰어달라고 요청</span>
+  <span class="shop-price">7,000원</span>
+</div>
+<div class="shop-cat 수산">수산</div>
+<div class="shop-item">
+  <span class="shop-name">냉동 새우살</span>
+  <span class="shop-qty">350g</span>
+  <span class="shop-menu">수(갈릭새우+볶음밥)</span>
+  <span class="shop-price">9,500원</span>
+</div>
+<div class="shop-cat 채소">채소</div>
+<div class="shop-item">
+  <span class="shop-name">양파</span>
+  <span class="shop-qty">3개</span>
+  <span class="shop-menu">수(볶음밥) + 금(제육볶음)</span>
+  <span class="shop-price">2,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">감자</span>
+  <span class="shop-qty">4개</span>
+  <span class="shop-menu">화(감자국) + 금(감자채볶음)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">대파</span>
+  <span class="shop-qty">4대</span>
+  <span class="shop-menu">화(감자국) + 수(볶음밥/계란국) + 금(제육/무국)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">무</span>
+  <span class="shop-qty">1/4개</span>
+  <span class="shop-menu">금(무국)</span>
+  <span class="shop-price">1,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">마늘</span>
+  <span class="shop-qty">2봉</span>
+  <span class="shop-menu">화(데리야끼) + 수(갈릭새우) + 금(제육)</span>
+  <span class="shop-price">3,500원</span>
+</div>
+<div class="shop-cat 달걀">달걀</div>
+<div class="shop-item">
+  <span class="shop-name">달걀</span>
+  <span class="shop-qty">5개</span>
+  <span class="shop-menu">수(볶음밥1+계란국2) + 여유1</span>
+  <span class="shop-price">3,000원</span>
+</div>
+<div class="shop-cat 양념기타">양념/기타</div>
+<div class="shop-item">
+  <span class="shop-name">배즙 (갈아만든배)</span>
+  <span class="shop-qty">2병</span>
+  <span class="shop-menu">금(간장제육 양념)</span>
+  <span class="shop-price">3,500원</span>
+</div>
+<div class="shop-cat 반찬재료">반찬 재료</div>
+<div class="shop-item">
+  <span class="shop-name">어묵</span>
+  <span class="shop-qty">250g</span>
+  <span class="shop-menu">화(어묵볶음)</span>
+  <span class="shop-price">3,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">김</span>
+  <span class="shop-qty">2봉</span>
+  <span class="shop-menu">수(김구이)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">인절미 (시판)</span>
+  <span class="shop-qty"></span>
+  <span class="shop-menu"></span>
+  <span class="shop-price">4,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">꿀</span>
+  <span class="shop-qty">2병</span>
+  <span class="shop-menu">수(인절미 곁들이)</span>
+  <span class="shop-price">3,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">예상 합계  (시세 기준 / 실제 가격과 다를 수 있음)</span>
+  <span class="shop-qty"></span>
+  <span class="shop-menu"></span>
+  <span class="shop-price"></span>
+</div>
+</div>
+<div id="s3" class="shop-section">
+<div class="shop-cat 정육">정육</div>
+<div class="shop-item">
+  <span class="shop-name">오리불고기용</span>
+  <span class="shop-qty">700g</span>
+  <span class="shop-menu">화(간장 오리불고기)</span>
+  <span class="shop-price">14,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">닭다리살</span>
+  <span class="shop-qty">700g</span>
+  <span class="shop-menu">금(간장마늘구이)</span>
+  <span class="shop-price">9,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">차돌박이</span>
+  <span class="shop-qty">250g</span>
+  <span class="shop-menu">금(차돌미역국)</span>
+  <span class="shop-price">9,500원</span>
+</div>
+<div class="shop-cat 수산">수산</div>
+<div class="shop-item">
+  <span class="shop-name">대구살 (손질)</span>
+  <span class="shop-qty">500g</span>
+  <span class="shop-menu">수(대구전)</span>
+  <span class="shop-price">12,000원</span>
+</div>
+<div class="shop-cat 두부류">두부류</div>
+<div class="shop-item">
+  <span class="shop-name">두부</span>
+  <span class="shop-qty">2모</span>
+  <span class="shop-menu">화(시금치된장국)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-cat 해조류">해조류</div>
+<div class="shop-item">
+  <span class="shop-name">염장 미역</span>
+  <span class="shop-qty">60g</span>
+  <span class="shop-menu">금(차돌미역국)</span>
+  <span class="shop-price">3,500원</span>
+</div>
+<div class="shop-cat 채소">채소</div>
+<div class="shop-item">
+  <span class="shop-name">양파</span>
+  <span class="shop-qty">2개</span>
+  <span class="shop-menu">화(오리불고기)</span>
+  <span class="shop-price">1,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">대파</span>
+  <span class="shop-qty">3대</span>
+  <span class="shop-menu">각 메뉴 마무리용</span>
+  <span class="shop-price">1,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">감자</span>
+  <span class="shop-qty">3개</span>
+  <span class="shop-menu">화(감자채볶음)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">무</span>
+  <span class="shop-qty">1/3개</span>
+  <span class="shop-menu">수(맑은무국)</span>
+  <span class="shop-price">2,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">시금치</span>
+  <span class="shop-qty">250g</span>
+  <span class="shop-menu">화(시금치된장국)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-cat 달걀">달걀</div>
+<div class="shop-item">
+  <span class="shop-name">달걀</span>
+  <span class="shop-qty">12개</span>
+  <span class="shop-menu">수(대구전 3개) + 여유</span>
+  <span class="shop-price">3,500원</span>
+</div>
+<div class="shop-cat 양념기타">양념/기타</div>
+<div class="shop-item">
+  <span class="shop-name">코인육수</span>
+  <span class="shop-qty">3개</span>
+  <span class="shop-menu">시금치된장국·무국</span>
+  <span class="shop-price">2,000원</span>
+</div>
+<div class="shop-cat 반찬재료">반찬 재료</div>
+<div class="shop-item">
+  <span class="shop-name">어묵</span>
+  <span class="shop-qty">300g</span>
+  <span class="shop-menu">수(어묵볶음 200g + 어묵꼬치 50g)</span>
+  <span class="shop-price">4,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">김</span>
+  <span class="shop-qty">2봉</span>
+  <span class="shop-menu">금(김구이)</span>
+  <span class="shop-price">3,500원</span>
+</div>
+</div>
+<div id="s4" class="shop-section">
+<div class="shop-cat 정육">정육</div>
+<div class="shop-item">
+  <span class="shop-name">차돌박이</span>
+  <span class="shop-qty">350g</span>
+  <span class="shop-menu">화(채소볶음)</span>
+  <span class="shop-price">12,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">돼지 안심</span>
+  <span class="shop-qty">600g</span>
+  <span class="shop-menu">수(탕수육)</span>
+  <span class="shop-price">14,000원</span>
+</div>
+<div class="shop-cat 수산">수산</div>
+<div class="shop-item">
+  <span class="shop-name">냉동 새우살</span>
+  <span class="shop-qty">200g</span>
+  <span class="shop-menu">금(해물파전)</span>
+  <span class="shop-price">7,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">냉동 오징어</span>
+  <span class="shop-qty">200g</span>
+  <span class="shop-menu">금(해물파전)</span>
+  <span class="shop-price">5,000원</span>
+</div>
+<div class="shop-cat 두부류">두부류</div>
+<div class="shop-item">
+  <span class="shop-name">두부</span>
+  <span class="shop-qty">2모</span>
+  <span class="shop-menu">화(두부전+된장국) + 수(된장국)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-cat 채소">채소</div>
+<div class="shop-item">
+  <span class="shop-name">양파</span>
+  <span class="shop-qty">2개</span>
+  <span class="shop-menu">화(차돌볶음)</span>
+  <span class="shop-price">1,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">대파</span>
+  <span class="shop-qty">3대</span>
+  <span class="shop-menu">각 메뉴 마무리용</span>
+  <span class="shop-price">1,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">당근</span>
+  <span class="shop-qty">1/2개</span>
+  <span class="shop-menu">화(차돌볶음)</span>
+  <span class="shop-price">1,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">배추</span>
+  <span class="shop-qty">1/4포기</span>
+  <span class="shop-menu">화(배추된장국)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">애호박</span>
+  <span class="shop-qty">2개</span>
+  <span class="shop-menu">수(애호박된장국)</span>
+  <span class="shop-price">2,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">콩나물</span>
+  <span class="shop-qty">250g</span>
+  <span class="shop-menu">금(콩나물국)</span>
+  <span class="shop-price">2,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">쪽파</span>
+  <span class="shop-qty">2줌</span>
+  <span class="shop-menu">금(해물파전)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">시금치</span>
+  <span class="shop-qty">250g</span>
+  <span class="shop-menu">수(시금치나물)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-cat 달걀">달걀</div>
+<div class="shop-item">
+  <span class="shop-name">달걀</span>
+  <span class="shop-qty">6개</span>
+  <span class="shop-menu">화(두부전 2개) + 수(탕수육 1개) + 여유</span>
+  <span class="shop-price">2,000원</span>
+</div>
+<div class="shop-cat 양념기타">양념/기타</div>
+<div class="shop-item">
+  <span class="shop-name">감자전분</span>
+  <span class="shop-qty">2봉</span>
+  <span class="shop-menu">수(탕수육)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">부침가루</span>
+  <span class="shop-qty">2봉</span>
+  <span class="shop-menu">금(해물파전)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">튀김가루</span>
+  <span class="shop-qty">2봉</span>
+  <span class="shop-menu">금(해물파전)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">코인육수</span>
+  <span class="shop-qty">4개</span>
+  <span class="shop-menu">배추된장국·애호박된장국·콩나물국</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-cat 반찬재료">반찬 재료</div>
+<div class="shop-item">
+  <span class="shop-name">잔멸치</span>
+  <span class="shop-qty">100g</span>
+  <span class="shop-menu">금(멸치볶음)</span>
+  <span class="shop-price">5,000원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">바나나</span>
+  <span class="shop-qty">4개</span>
+  <span class="shop-menu">수(바나나구이 간식)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+<div class="shop-item">
+  <span class="shop-name">시나몬 가루</span>
+  <span class="shop-qty">2병</span>
+  <span class="shop-menu">수(바나나구이 토핑)</span>
+  <span class="shop-price">2,500원</span>
+</div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.week-section, .shop-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
