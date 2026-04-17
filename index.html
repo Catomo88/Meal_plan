@@ -23,11 +23,15 @@ body{font-family:'Segoe UI',-apple-system,'Apple SD Gothic Neo',sans-serif;backg
 .header .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .meta-item{font-size:11px;color:var(--text3);background:rgba(255,255,255,.05);padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
 .meta-item strong{color:var(--text2)}
-.tabs{display:flex;gap:0;margin-top:16px;overflow-x:auto}
-.tab{padding:10px 16px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
-.tab:hover{color:var(--text2)}
-.tab.active{color:#fff;border-bottom-color:var(--accent)}
-.tab small{font-size:10px;opacity:.7}
+.top-tabs{display:flex;gap:0;margin-top:16px}
+.top-tab{flex:1;text-align:center;padding:12px 0;font-size:14px;font-weight:700;color:var(--text3);cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.top-tab:hover{color:var(--text2)}
+.top-tab.active{color:#fff;border-bottom-color:var(--accent)}
+.sub-tabs{display:flex;gap:0;background:rgba(0,0,0,.2);overflow-x:auto}
+.sub-tab{padding:9px 16px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.sub-tab:hover{color:var(--text2)}
+.sub-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.sub-tab small{font-size:10px;opacity:.7}
 .main{max-width:800px;margin:0 auto;padding:16px}
 .section{display:none}.section.active{display:block}
 
@@ -93,13 +97,19 @@ body{font-family:'Segoe UI',-apple-system,'Apple SD Gothic Neo',sans-serif;backg
     <span class="meta-item">총 <strong>9끼</strong></span>
     <span class="meta-item">재료 <strong>120% 증량</strong></span>
   </div>
-  <div class="tabs" id="tabBar">
-    <div class="tab active" data-tab="w2">2주차 <small>4/14~17</small></div>
-    <div class="tab" data-tab="w3">3주차 <small>4/21~24</small></div>
-    <div class="tab" data-tab="w4">4주차 <small>4/28~5/1</small></div>
-    <div class="tab" data-tab="s2">장보기 <small>2주차</small></div>
-    <div class="tab" data-tab="s3">장보기 <small>3주차</small></div>
-    <div class="tab" data-tab="s4">장보기 <small>4주차</small></div>
+  <div class="top-tabs" id="topTabs">
+    <div class="top-tab active" data-group="meal">🍽 식단</div>
+    <div class="top-tab" data-group="shop">🛒 장보기</div>
+  </div>
+  <div class="sub-tabs" id="subTabs" data-group="meal">
+    <div class="sub-tab active" data-tab="w2">2주차 <small>4/14~17</small></div>
+    <div class="sub-tab" data-tab="w3">3주차 <small>4/21~24</small></div>
+    <div class="sub-tab" data-tab="w4">4주차 <small>4/28~5/1</small></div>
+  </div>
+  <div class="sub-tabs" id="subTabsShop" data-group="shop" style="display:none">
+    <div class="sub-tab active" data-tab="s2">2주차 <small>4/14~17</small></div>
+    <div class="sub-tab" data-tab="s3">3주차 <small>4/21~24</small></div>
+    <div class="sub-tab" data-tab="s4">4주차 <small>4/28~5/1</small></div>
   </div>
 </div>
 <div class="main">
@@ -628,14 +638,41 @@ body{font-family:'Segoe UI',-apple-system,'Apple SD Gothic Neo',sans-serif;backg
 
 </div>
 <script>
-document.getElementById('tabBar').addEventListener('click', function(e) {
-  const t = e.target.closest('.tab');
-  if (!t) return;
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+const topTabs = document.getElementById('topTabs');
+const subMeal = document.getElementById('subTabs');
+const subShop = document.getElementById('subTabsShop');
+
+// Track active sub-tab per group
+const activeTab = { meal: 'w2', shop: 's2' };
+
+function showSection(tabId) {
   document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+}
+
+topTabs.addEventListener('click', function(e) {
+  const t = e.target.closest('.top-tab');
+  if (!t) return;
+  const group = t.dataset.group;
+  document.querySelectorAll('.top-tab').forEach(x => x.classList.remove('active'));
   t.classList.add('active');
-  document.getElementById(t.dataset.tab).classList.add('active');
+  if (group === 'meal') { subMeal.style.display='flex'; subShop.style.display='none'; }
+  else { subMeal.style.display='none'; subShop.style.display='flex'; }
+  showSection(activeTab[group]);
   window.scrollTo({top: 0, behavior: 'smooth'});
+});
+
+[subMeal, subShop].forEach(bar => {
+  bar.addEventListener('click', function(e) {
+    const t = e.target.closest('.sub-tab');
+    if (!t) return;
+    const group = bar.dataset.group;
+    bar.querySelectorAll('.sub-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab[group] = t.dataset.tab;
+    showSection(t.dataset.tab);
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
 });
 </script>
 </body>
