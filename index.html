@@ -642,8 +642,41 @@ const topTabs = document.getElementById('topTabs');
 const subMeal = document.getElementById('subTabs');
 const subShop = document.getElementById('subTabsShop');
 
-// Track active sub-tab per group
-const activeTab = { meal: 'w2', shop: 's2' };
+// Determine current week based on date ranges
+const weeks = [
+  { meal:'w2', shop:'s2', start:[2026,4,14], end:[2026,4,17] },
+  { meal:'w3', shop:'s3', start:[2026,4,21], end:[2026,4,24] },
+  { meal:'w4', shop:'s4', start:[2026,4,28], end:[2026,5,1] },
+];
+function getCurrentWeek() {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (const w of weeks) {
+    const s = new Date(w.start[0], w.start[1]-1, w.start[2]);
+    const e = new Date(w.end[0], w.end[1]-1, w.end[2]);
+    // Include the full week: from Monday before start to Sunday after end
+    const weekStart = new Date(s); weekStart.setDate(s.getDate() - (s.getDay()||7) + 1);
+    const weekEnd = new Date(e); weekEnd.setDate(e.getDate() + (7 - (e.getDay()||7)));
+    if (d >= weekStart && d <= weekEnd) return w;
+  }
+  // If past all weeks, show latest; if before all, show first
+  return d > new Date(weeks[weeks.length-1].end[0], weeks[weeks.length-1].end[1]-1, weeks[weeks.length-1].end[2]) ? weeks[weeks.length-1] : weeks[0];
+}
+const cur = getCurrentWeek();
+const activeTab = { meal: cur.meal, shop: cur.shop };
+
+// Apply initial active states
+function initTabs() {
+  subMeal.querySelectorAll('.sub-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === cur.meal);
+  });
+  subShop.querySelectorAll('.sub-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === cur.shop);
+  });
+  document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+  document.getElementById(cur.meal).classList.add('active');
+}
+initTabs();
 
 function showSection(tabId) {
   document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
