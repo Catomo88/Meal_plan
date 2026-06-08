@@ -35,6 +35,11 @@ body{font-family:'Segoe UI',-apple-system,'Apple SD Gothic Neo',sans-serif;backg
 .sub-tab:hover{color:var(--text2)}
 .sub-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .sub-tab small{font-size:10px;opacity:.7}
+.month-tabs{display:flex;gap:0;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)}
+.month-tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;position:relative}
+.month-tab:hover{color:var(--text2)}
+.month-tab.active{color:var(--yellow);border-bottom-color:var(--yellow)}
+.month-tab .count{font-size:9px;background:rgba(255,255,255,.08);padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle}
 .main{max-width:800px;margin:0 auto;padding:16px}
 .section{display:none}.section.active{display:block}
 
@@ -104,27 +109,32 @@ body{font-family:'Segoe UI',-apple-system,'Apple SD Gothic Neo',sans-serif;backg
     <div class="top-tab active" data-group="meal">🍽 식단</div>
     <div class="top-tab" data-group="shop">🛒 장보기</div>
   </div>
+  <div class="month-tabs" id="monthTabs">
+    <div class="month-tab" data-month="4">4월 <span class="count">3</span></div>
+    <div class="month-tab" data-month="5">5월 <span class="count">4</span></div>
+    <div class="month-tab" data-month="6">6월 <span class="count">2</span></div>
+  </div>
   <div class="sub-tabs" id="subTabs" data-group="meal">
-    <div class="sub-tab" data-tab="w0">4월2주 <small>4/14~17</small></div>
-    <div class="sub-tab" data-tab="w1">4월3주 <small>4/21~24</small></div>
-    <div class="sub-tab" data-tab="w2">4월4주 <small>4/28~29</small></div>
-    <div class="sub-tab" data-tab="w3">5월1주 <small>5/6~8</small></div>
-    <div class="sub-tab" data-tab="w4">5월2주 <small>5/12~15</small></div>
-    <div class="sub-tab" data-tab="w5">5월3주 <small>5/19~22</small></div>
-    <div class="sub-tab" data-tab="w6">5월4주 <small>5/26~29</small></div>
-    <div class="sub-tab" data-tab="w7">6월1주 <small>6/2~5</small></div>
-    <div class="sub-tab" data-tab="w8">6월2주 <small>6/9~12</small></div>
+    <div class="sub-tab" data-tab="w0" data-month="4">2주 <small>4/14~17</small></div>
+    <div class="sub-tab" data-tab="w1" data-month="4">3주 <small>4/21~24</small></div>
+    <div class="sub-tab" data-tab="w2" data-month="4">4주 <small>4/28~29</small></div>
+    <div class="sub-tab" data-tab="w3" data-month="5">1주 <small>5/6~8</small></div>
+    <div class="sub-tab" data-tab="w4" data-month="5">2주 <small>5/12~15</small></div>
+    <div class="sub-tab" data-tab="w5" data-month="5">3주 <small>5/19~22</small></div>
+    <div class="sub-tab" data-tab="w6" data-month="5">4주 <small>5/26~29</small></div>
+    <div class="sub-tab" data-tab="w7" data-month="6">1주 <small>6/2~5</small></div>
+    <div class="sub-tab" data-tab="w8" data-month="6">2주 <small>6/9~12</small></div>
   </div>
   <div class="sub-tabs" id="subTabsShop" data-group="shop" style="display:none">
-    <div class="sub-tab" data-tab="s0">4월2주 <small>4/14~17</small></div>
-    <div class="sub-tab" data-tab="s1">4월3주 <small>4/21~24</small></div>
-    <div class="sub-tab" data-tab="s2">4월4주 <small>4/28~29</small></div>
-    <div class="sub-tab" data-tab="s3">5월1주 <small>5/6~8</small></div>
-    <div class="sub-tab" data-tab="s4">5월2주 <small>5/12~15</small></div>
-    <div class="sub-tab" data-tab="s5">5월3주 <small>5/19~22</small></div>
-    <div class="sub-tab" data-tab="s6">5월4주 <small>5/26~29</small></div>
-    <div class="sub-tab" data-tab="s7">6월1주 <small>6/2~5</small></div>
-    <div class="sub-tab" data-tab="s8">6월2주 <small>6/9~12</small></div>
+    <div class="sub-tab" data-tab="s0" data-month="4">2주 <small>4/14~17</small></div>
+    <div class="sub-tab" data-tab="s1" data-month="4">3주 <small>4/21~24</small></div>
+    <div class="sub-tab" data-tab="s2" data-month="4">4주 <small>4/28~29</small></div>
+    <div class="sub-tab" data-tab="s3" data-month="5">1주 <small>5/6~8</small></div>
+    <div class="sub-tab" data-tab="s4" data-month="5">2주 <small>5/12~15</small></div>
+    <div class="sub-tab" data-tab="s5" data-month="5">3주 <small>5/19~22</small></div>
+    <div class="sub-tab" data-tab="s6" data-month="5">4주 <small>5/26~29</small></div>
+    <div class="sub-tab" data-tab="s7" data-month="6">1주 <small>6/2~5</small></div>
+    <div class="sub-tab" data-tab="s8" data-month="6">2주 <small>6/9~12</small></div>
   </div>
 </div>
 <div class="main">
@@ -1663,21 +1673,22 @@ body{font-family:'Segoe UI',-apple-system,'Apple SD Gothic Neo',sans-serif;backg
 </div>
 <script>
 const topTabs = document.getElementById('topTabs');
+const monthTabs = document.getElementById('monthTabs');
 const subMeal = document.getElementById('subTabs');
 const subShop = document.getElementById('subTabsShop');
 
-// Determine current week: show next week once last meal day has passed
 const weeks = [
-  { meal:'w0', shop:'s0', lastDay:[2026,4,17] },
-  { meal:'w1', shop:'s1', lastDay:[2026,4,24] },
-  { meal:'w2', shop:'s2', lastDay:[2026,4,29] },
-  { meal:'w3', shop:'s3', lastDay:[2026,5,8] },
-  { meal:'w4', shop:'s4', lastDay:[2026,5,15] },
-  { meal:'w5', shop:'s5', lastDay:[2026,5,22] },
-  { meal:'w6', shop:'s6', lastDay:[2026,5,29] },
-  { meal:'w7', shop:'s7', lastDay:[2026,6,5] },
-  { meal:'w8', shop:'s8', lastDay:[2026,6,12] },
+  { meal:'w0', shop:'s0', lastDay:[2026,4,17], month:'4' },
+  { meal:'w1', shop:'s1', lastDay:[2026,4,24], month:'4' },
+  { meal:'w2', shop:'s2', lastDay:[2026,4,29], month:'4' },
+  { meal:'w3', shop:'s3', lastDay:[2026,5,8], month:'5' },
+  { meal:'w4', shop:'s4', lastDay:[2026,5,15], month:'5' },
+  { meal:'w5', shop:'s5', lastDay:[2026,5,22], month:'5' },
+  { meal:'w6', shop:'s6', lastDay:[2026,5,29], month:'5' },
+  { meal:'w7', shop:'s7', lastDay:[2026,6,5], month:'6' },
+  { meal:'w8', shop:'s8', lastDay:[2026,6,12], month:'6' },
 ];
+
 function getCurrentWeek() {
   const now = new Date();
   const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1688,39 +1699,78 @@ function getCurrentWeek() {
   }
   return weeks[weeks.length-1];
 }
+
 const cur = getCurrentWeek();
 const activeTab = { meal: cur.meal, shop: cur.shop };
+let activeMonth = cur.month;
+let activeGroup = 'meal';
 
-// Apply initial active states
-function initTabs() {
-  subMeal.querySelectorAll('.sub-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === cur.meal);
+// Filter sub-tabs by month
+function filterByMonth(month) {
+  activeMonth = month;
+  monthTabs.querySelectorAll('.month-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.month === month);
   });
-  subShop.querySelectorAll('.sub-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === cur.shop);
+  [subMeal, subShop].forEach(bar => {
+    bar.querySelectorAll('.sub-tab').forEach(t => {
+      t.style.display = t.dataset.month === month ? '' : 'none';
+    });
   });
-  document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
-  document.getElementById(cur.meal).classList.add('active');
 }
-initTabs();
 
 function showSection(tabId) {
   document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
 }
 
-topTabs.addEventListener('click', function(e) {
-  const t = e.target.closest('.top-tab');
+function selectWeekTab(bar, tabId) {
+  bar.querySelectorAll('.sub-tab').forEach(x => x.classList.remove('active'));
+  const target = bar.querySelector(`[data-tab="${tabId}"]`);
+  if (target) target.classList.add('active');
+}
+
+// Init
+function initTabs() {
+  filterByMonth(activeMonth);
+  selectWeekTab(subMeal, cur.meal);
+  selectWeekTab(subShop, cur.shop);
+  showSection(cur.meal);
+}
+initTabs();
+
+// Month tab click
+monthTabs.addEventListener('click', function(e) {
+  const t = e.target.closest('.month-tab');
   if (!t) return;
-  const group = t.dataset.group;
-  document.querySelectorAll('.top-tab').forEach(x => x.classList.remove('active'));
-  t.classList.add('active');
-  if (group === 'meal') { subMeal.style.display='flex'; subShop.style.display='none'; }
-  else { subMeal.style.display='none'; subShop.style.display='flex'; }
-  showSection(activeTab[group]);
+  const month = t.dataset.month;
+  filterByMonth(month);
+  // Show first week of selected month for current group
+  const bar = activeGroup === 'meal' ? subMeal : subShop;
+  const firstVisible = bar.querySelector(`.sub-tab[data-month="${month}"]`);
+  if (firstVisible) {
+    bar.querySelectorAll('.sub-tab').forEach(x => x.classList.remove('active'));
+    firstVisible.classList.add('active');
+    activeTab[activeGroup] = firstVisible.dataset.tab;
+    showSection(firstVisible.dataset.tab);
+  }
   window.scrollTo({top: 0, behavior: 'smooth'});
 });
 
+// Top tab (식단/장보기) click
+topTabs.addEventListener('click', function(e) {
+  const t = e.target.closest('.top-tab');
+  if (!t) return;
+  activeGroup = t.dataset.group;
+  document.querySelectorAll('.top-tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  if (activeGroup === 'meal') { subMeal.style.display='flex'; subShop.style.display='none'; }
+  else { subMeal.style.display='none'; subShop.style.display='flex'; }
+  filterByMonth(activeMonth);
+  showSection(activeTab[activeGroup]);
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
+
+// Week sub-tab click
 [subMeal, subShop].forEach(bar => {
   bar.addEventListener('click', function(e) {
     const t = e.target.closest('.sub-tab');
