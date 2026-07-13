@@ -1,0 +1,14 @@
+# === 개인정보/브레인 — 공개 레포 제외 (별도 비공개 레포에 백업) ===
+CLAUDE.md
+.claude/
+
+# === 로컬 임시·백업 파일 ===
+*.backup
+~$*
+*.tmp
+.DS_Store
+Thumbs.db
+
+# === 로컬 전용 이미지 (사이트 미사용, 원본 대용량) ===
+Gemini_Generated_Image*.png
+icon_cropped.png
