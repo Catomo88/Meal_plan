@@ -12,3 +12,6 @@ Thumbs.db
 # === 로컬 전용 이미지 (사이트 미사용, 원본 대용량) ===
 Gemini_Generated_Image*.png
 icon_cropped.png
+
+# 브레인 비공개 백업용 별도 git 디렉토리
+.git-brain/
